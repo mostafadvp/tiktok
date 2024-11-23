@@ -1,17 +1,20 @@
 package ir.jamareh.tiktok_aa.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import ir.jamareh.tiktok_aa.TiktokResponse;
 import ir.jamareh.tiktok_aa.model.Role;
 import ir.jamareh.tiktok_aa.model.user.User;
 import ir.jamareh.tiktok_aa.model.user.UserDTO;
 import ir.jamareh.tiktok_aa.repositories.RoleRepository;
 import ir.jamareh.tiktok_aa.repositories.UserRepository;
 import ir.jamareh.tiktok_aa.security.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/admin/users")
@@ -35,7 +38,7 @@ public class UsersController {
      * @return inserted user id
      */
     @PostMapping("/register")
-    public String register(@RequestBody User user) {
+    public ResponseEntity<TiktokResponse<String>> register(@RequestBody User user) throws JsonProcessingException {
         user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
         user.setEnabled(true);
 
@@ -43,10 +46,18 @@ public class UsersController {
                 .orElseThrow(() -> new RuntimeException("Default role not found"));
         user.setRoles(Collections.singleton(defaultRole));
 
-        User insertedUser = userRepository.save(user);
-        if (insertedUser.getId() != -1) {
-            return "{id:" + insertedUser.getId() + "}";
-        } else return "{error:insert new user failed}";
+        if (userRepository.findByUsername(user.getUsername()).isEmpty()) {
+            User insertedUser = userRepository.save(user);
+            Map<String, Long> responseMap = new HashMap<>();
+            if (insertedUser.getId() != -1) {
+                responseMap.put("id", insertedUser.getId());
+                TiktokResponse<String> tiktokResponse = new TiktokResponse<>(true, "new user added", new ObjectMapper().writeValueAsString(responseMap));
+                return ResponseEntity.ok(tiktokResponse);
+            } else {
+                return ResponseEntity.ok(new TiktokResponse<>(false, "insert new user failed", null));
+            }
+        }
+        return ResponseEntity.ok(new TiktokResponse<>(false, "user with same username exists", null));
     }
 
     /**
@@ -56,9 +67,12 @@ public class UsersController {
      * @return deleted user id
      */
     @GetMapping("/delete")
-    public String deleteUser(@RequestParam("id") Long id) {
-        userRepository.deleteById(id);
-        return "{id:" + id + "}";
+    public ResponseEntity<TiktokResponse<String>> deleteUser(@RequestParam("id") Long id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            return ResponseEntity.ok(new TiktokResponse<>(true, "user deleted", null));
+        }
+        return new ResponseEntity<>(new TiktokResponse<>(false, "user not found", null), HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -68,10 +82,16 @@ public class UsersController {
      * @return user status
      */
     @GetMapping("/status")
-    public String statusUser(@RequestParam("id") Long id) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user != null) return "{id:" + id + ", enabled:" + user.isEnabled() + "}";
-        else return "{error:user not found}";
+    public ResponseEntity<TiktokResponse<String>> statusUser(@RequestParam("id") Long id) throws JsonProcessingException {
+
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("id", id);
+            responseMap.put("status", user.get().isEnabled());
+            return ResponseEntity.ok(new TiktokResponse<>(true, "user status", new ObjectMapper().writeValueAsString(responseMap)));
+        }
+        return new ResponseEntity<>(new TiktokResponse<>(false, "user not found", null), HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -82,17 +102,26 @@ public class UsersController {
      * @return user status
      */
     @GetMapping("/enable")
-    public String enableUser(@RequestParam("id") Long id, @RequestParam("enabled") boolean enabled) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user == null) return "{error:user not found}";
-        user.setEnabled(enabled);
-        userRepository.save(user);
-        return "{id:" + id + ", enable:" + enabled + "}";
+    public ResponseEntity<TiktokResponse<String>> enableUser(@RequestParam("id") Long id, @RequestParam("enabled") boolean enabled) throws JsonProcessingException {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.setEnabled(enabled);
+            userRepository.save(user);
+
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("id", id);
+            responseMap.put("enabled", enabled);
+
+            return ResponseEntity.ok(new TiktokResponse<>(true, "user status", new ObjectMapper().writeValueAsString(responseMap)));
+        } else {
+            return new ResponseEntity<>(new TiktokResponse<>(false, "user not found", null), HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/role/{role}")
-    public ResponseEntity<List<UserDTO>> getUsersByRole(@PathVariable String role) {
+    public ResponseEntity<TiktokResponse<List<UserDTO>>> getUsersByRole(@PathVariable String role) {
         List<UserDTO> users = userService.getUsersByRoleName(role);
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(new TiktokResponse<>(true, "users by role", users));
     }
 }

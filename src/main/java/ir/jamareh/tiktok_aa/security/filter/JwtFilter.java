@@ -1,5 +1,7 @@
 package ir.jamareh.tiktok_aa.security.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import ir.jamareh.tiktok_aa.TiktokResponse;
 import ir.jamareh.tiktok_aa.security.service.JWTService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -34,19 +37,34 @@ public class JwtFilter extends OncePerRequestFilter {
         String authorizationHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7);
-            username = jwtService.extractUserName(token);
-        }
-
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                token = authorizationHeader.substring(7);
+                username = jwtService.extractUserName(token);
             }
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (jwtService.validateToken(token, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    throw new IllegalArgumentException("Invalid or expired token");
+                }
+            }
+            filterChain.doFilter(request, response);
+        } catch (IllegalArgumentException | UsernameNotFoundException e) {
+            handleErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, new TiktokResponse<>(false, e.getMessage(), null));
+        } catch (Exception e) {
+            handleErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, new TiktokResponse<>(false, e.getMessage(), null));
         }
-        filterChain.doFilter(request, response);
+    }
+
+    private void handleErrorResponse(HttpServletResponse response, int status, TiktokResponse<?> apiResponse) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     }
 }

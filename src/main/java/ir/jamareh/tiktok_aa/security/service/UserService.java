@@ -6,6 +6,7 @@ import ir.jamareh.tiktok_aa.repositories.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,12 +29,17 @@ public class UserService {
     }
 
     public String verify(User user) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-        if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(user.getUsername());
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+            if (authentication.isAuthenticated()) {
+                return jwtService.generateToken(user.getUsername());
+            }
+        } catch (AuthenticationException e) {
+            e.printStackTrace();
         }
-        return "fail";
+        return null;
     }
+
 
     public List<UserDTO> getUsersByRoleName(String role) {
         String roleName = switch (role) {
