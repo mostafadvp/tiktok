@@ -18,9 +18,9 @@ repositories {
 }
 
 configurations {
-        all {
-            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-        }
+    configureEach {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
 }
 
 dependencies {
@@ -28,18 +28,22 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 
     /* JWT */
-    def jwt_version='0.12.5'
+    def jwt_version = '0.12.5'
     implementation "io.jsonwebtoken:jjwt-api:$jwt_version"
     runtimeOnly "io.jsonwebtoken:jjwt-impl:$jwt_version"
     runtimeOnly "io.jsonwebtoken:jjwt-jackson:$jwt_version"
 
+    /* LOMBOK */
+    def lombok_version = '1.18.30'
+    compileOnly "org.projectlombok:lombok:$lombok_version"
+    annotationProcessor "org.projectlombok:lombok:$lombok_version"
+
     implementation 'org.postgresql:postgresql'
 
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
-
-    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
