@@ -20,8 +20,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-
     private final TiktokUserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;
 
