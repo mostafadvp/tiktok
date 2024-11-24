@@ -9,8 +9,7 @@ import ir.jamareh.tiktok_aa.model.user.UserDTO;
 import ir.jamareh.tiktok_aa.repositories.RoleRepository;
 import ir.jamareh.tiktok_aa.repositories.UserRepository;
 import ir.jamareh.tiktok_aa.security.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/admin/users")
 public class UsersController {
-    private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserService userService;
@@ -36,13 +35,13 @@ public class UsersController {
     /**
      * registering new user
      *
-     * @param user
+     * @param user new user
      * @return inserted user id
      */
     @PostMapping("/register")
     public ResponseEntity<TiktokResponse<String>> register(@RequestBody User user) throws JsonProcessingException {
-        logger.info("register api called");
-        logger.info("Registering new user called");
+        log.info("register api called");
+        log.info("Registering new user called");
         user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
         user.setEnabled(true);
 
@@ -56,10 +55,10 @@ public class UsersController {
             if (insertedUser.getId() != -1) {
                 responseMap.put("id", insertedUser.getId());
                 TiktokResponse<String> tiktokResponse = new TiktokResponse<>(true, "new user added", new ObjectMapper().writeValueAsString(responseMap));
-                logger.info("new user registered successfully with id:{}", insertedUser.getId());
+                log.info("new user registered successfully with id:{}", insertedUser.getId());
                 return ResponseEntity.ok(tiktokResponse);
             } else {
-                logger.error("new user could not be added due to database problem");
+                log.error("new user could not be added due to database problem");
                 return ResponseEntity.ok(new TiktokResponse<>(false, "insert new user failed", null));
             }
         }
@@ -74,13 +73,13 @@ public class UsersController {
      */
     @GetMapping("/delete")
     public ResponseEntity<TiktokResponse<String>> deleteUser(@RequestParam("id") Long id) {
-        logger.info("deleteUser api Called");
+        log.info("deleteUser api Called");
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
-            logger.info("User with id:{} deleted successfully", id);
+            log.info("User with id:{} deleted successfully", id);
             return ResponseEntity.ok(new TiktokResponse<>(true, "user deleted", null));
         }
-        logger.warn("User with id:{} not found", id);
+        log.warn("User with id:{} not found", id);
         return new ResponseEntity<>(new TiktokResponse<>(false, "user not found", null), HttpStatus.NOT_FOUND);
     }
 
@@ -92,7 +91,7 @@ public class UsersController {
      */
     @GetMapping("/status")
     public ResponseEntity<TiktokResponse<String>> statusUser(@RequestParam("id") Long id) throws JsonProcessingException {
-        logger.info("statusUser api Called, userId:{}", id);
+        log.info("statusUser api Called, userId:{}", id);
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
             Map<String, Object> responseMap = new HashMap<>();
@@ -112,7 +111,7 @@ public class UsersController {
      */
     @GetMapping("/enable")
     public ResponseEntity<TiktokResponse<String>> enableUser(@RequestParam("id") Long id, @RequestParam("enabled") boolean enabled) throws JsonProcessingException {
-        logger.info("enableUser api Called, userId:{}", id);
+        log.info("enableUser api Called, userId:{}", id);
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
@@ -131,7 +130,7 @@ public class UsersController {
 
     @GetMapping("/role/{role}")
     public ResponseEntity<TiktokResponse<List<UserDTO>>> getUsersByRole(@PathVariable String role) {
-        logger.info("getUsersByRole:{} api Called", role);
+        log.info("getUsersByRole:{} api Called", role);
         List<UserDTO> users = userService.getUsersByRoleName(role);
         return ResponseEntity.ok(new TiktokResponse<>(true, "users by role", users));
     }

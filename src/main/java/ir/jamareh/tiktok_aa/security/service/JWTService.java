@@ -3,8 +3,7 @@ package ir.jamareh.tiktok_aa.security.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +18,9 @@ import java.util.function.Function;
 /**
  * Manage jwt token things, like generating tokens and verify them
  */
+@Slf4j
 @Service
 public class JWTService {
-    private static final Logger logger = LoggerFactory.getLogger(JWTService.class);
     private final String key;
 
     public JWTService() {
@@ -29,9 +28,9 @@ public class JWTService {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
             SecretKey secretKey = keyGenerator.generateKey();
             key = Base64.getEncoder().encodeToString(secretKey.getEncoded());
-            logger.info("key generated successfully");
+            log.info("key generated successfully");
         } catch (NoSuchAlgorithmException e) {
-            logger.error("could not generate key, msg:{}", e.getMessage());
+            log.error("could not generate key, msg:{}", e.getMessage());
             throw new RuntimeException(e);
         }
     }

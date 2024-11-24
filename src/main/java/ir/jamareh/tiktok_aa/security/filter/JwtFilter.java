@@ -7,8 +7,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,9 +23,9 @@ import java.io.IOException;
 /**
  * used to check token is valid or not
  */
+@Slf4j
 @Component
 public class JwtFilter extends OncePerRequestFilter {
-    private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
     private final JWTService jwtService;
     private final UserDetailsService userDetailsService;
 
@@ -35,7 +35,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException {
         String authorizationHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
@@ -57,10 +57,10 @@ public class JwtFilter extends OncePerRequestFilter {
             }
             filterChain.doFilter(request, response);
         } catch (IllegalArgumentException | UsernameNotFoundException e) {
-            logger.error("Invalid or expired token:{}", e.getMessage());
+            log.error("Invalid or expired token:{}", e.getMessage());
             handleErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, new TiktokResponse<>(false, e.getMessage(), null));
         } catch (Exception e) {
-            logger.error("Internal server error:{}", e.getMessage());
+            log.error("Internal server error:{}", e.getMessage());
             handleErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, new TiktokResponse<>(false, e.getMessage(), null));
         }
     }

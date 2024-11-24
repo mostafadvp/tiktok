@@ -3,8 +3,7 @@ package ir.jamareh.tiktok_aa.security.service;
 import ir.jamareh.tiktok_aa.model.user.User;
 import ir.jamareh.tiktok_aa.model.user.UserDTO;
 import ir.jamareh.tiktok_aa.repositories.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,9 +17,9 @@ import java.util.stream.Collectors;
 /**
  * manage user things like login and register
  */
+@Slf4j
 @Service
 public class UserService {
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final AuthenticationManager authenticationManager;
     private final JWTService jwtService;
     private final UserRepository userRepository;
@@ -35,11 +34,11 @@ public class UserService {
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
             if (authentication.isAuthenticated()) {
-                logger.info("User:{} authenticated successfully", user.getUsername());
+                log.info("User:{} authenticated successfully", user.getUsername());
                 return jwtService.generateToken(user.getUsername());
             }
         } catch (AuthenticationException e) {
-            logger.warn("Authentication for user:{} failed, msg:{}", user.getUsername(), e.getMessage());
+            log.warn("Authentication for user:{} failed, msg:{}", user.getUsername(), e.getMessage());
         }
         return null;
     }
