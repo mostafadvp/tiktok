@@ -8,7 +8,7 @@ import ir.jamareh.tiktok_aa.model.user.User;
 import ir.jamareh.tiktok_aa.model.user.UserDTO;
 import ir.jamareh.tiktok_aa.repositories.RoleRepository;
 import ir.jamareh.tiktok_aa.repositories.UserRepository;
-import ir.jamareh.tiktok_aa.security.service.UserService;
+import ir.jamareh.tiktok_aa.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +41,6 @@ public class UsersController {
     @PostMapping("/register")
     public ResponseEntity<TiktokResponse<String>> register(@RequestBody User user) throws JsonProcessingException {
         log.info("register api called");
-        log.info("Registering new user called");
         user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
         user.setEnabled(true);
 

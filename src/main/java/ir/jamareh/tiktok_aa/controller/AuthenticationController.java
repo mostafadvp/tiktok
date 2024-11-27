@@ -2,7 +2,7 @@ package ir.jamareh.tiktok_aa.controller;
 
 import ir.jamareh.tiktok_aa.TiktokResponse;
 import ir.jamareh.tiktok_aa.model.user.User;
-import ir.jamareh.tiktok_aa.security.service.UserService;
+import ir.jamareh.tiktok_aa.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

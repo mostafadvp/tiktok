@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/login").permitAll() //escape certain pages like login and register to avoid authentication
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/user/**").hasRole("USER")
                         .anyRequest().authenticated()) //enable authentication for all pages
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //making pages state less which means new id per session
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

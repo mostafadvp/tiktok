@@ -1,9 +1,11 @@
 package ir.jamareh.tiktok_aa.model.user;
 
 import ir.jamareh.tiktok_aa.model.Role;
+import ir.jamareh.tiktok_aa.model.job.TiktokJob;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,6 +23,9 @@ public class User {
     private String password;
 
     private boolean enabled;
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TiktokJob> jobs;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
