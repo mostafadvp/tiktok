@@ -3,7 +3,7 @@ package ir.jamareh.tiktok_aa.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ir.jamareh.tiktok_aa.TiktokResponse;
-import ir.jamareh.tiktok_aa.model.Role;
+import ir.jamareh.tiktok_aa.model.user.Role;
 import ir.jamareh.tiktok_aa.model.user.User;
 import ir.jamareh.tiktok_aa.model.user.UserDTO;
 import ir.jamareh.tiktok_aa.repositories.RoleRepository;

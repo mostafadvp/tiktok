@@ -1,9 +1,7 @@
-package ir.jamareh.tiktok_aa.model;
+package ir.jamareh.tiktok_aa.model.user;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
-import java.util.Objects;
 
 @Data
 @Entity

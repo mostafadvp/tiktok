@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @Slf4j
@@ -75,5 +77,14 @@ public class JobService {
 
     public void deleteJob(Long id) {
         jobRepository.deleteById(id);
+    }
+
+    public TiktokJob getJob(Long jobId) {
+        TiktokJob job = jobRepository.findById(jobId).orElse(null);
+        if (job == null) {
+            log.info("Job {} not found.", jobId);
+            throw new IllegalArgumentException("Job not found");
+        }
+        return job;
     }
 }

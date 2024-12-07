@@ -3,9 +3,13 @@ package ir.jamareh.tiktok_aa.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ir.jamareh.tiktok_aa.TiktokResponse;
+import ir.jamareh.tiktok_aa.model.account.TiktokAccount;
 import ir.jamareh.tiktok_aa.model.job.JobStatus;
 import ir.jamareh.tiktok_aa.model.job.TiktokJob;
+import ir.jamareh.tiktok_aa.model.request.job.JobAccountRequest;
 import ir.jamareh.tiktok_aa.model.user.User;
+import ir.jamareh.tiktok_aa.repositories.JobRepository;
+import ir.jamareh.tiktok_aa.service.AccountService;
 import ir.jamareh.tiktok_aa.service.UserService;
 import ir.jamareh.tiktok_aa.service.JobService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @Slf4j
 @RestController
@@ -22,10 +27,14 @@ import java.util.Map;
 public class TiktokJobController {
     private final JobService jobService;
     private final UserService userService;
+    private final AccountService accountService;
+    private final JobRepository jobRepository;
 
-    public TiktokJobController(JobService jobService, UserService userService) {
+    public TiktokJobController(JobService jobService, UserService userService, AccountService accountService, JobRepository jobRepository) {
         this.jobService = jobService;
         this.userService = userService;
+        this.accountService = accountService;
+        this.jobRepository = jobRepository;
     }
 
     @PostMapping("/create")
@@ -118,6 +127,30 @@ public class TiktokJobController {
             }
         } catch (IllegalArgumentException e) {
             log.error("Could not stop job: {}", e.getMessage());
+            return new ResponseEntity<>(new TiktokResponse<>(false, e.getMessage(), null), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/addAccount")
+    public ResponseEntity<TiktokResponse<String>> addAccount(@RequestBody JobAccountRequest request) {
+        log.info("addAccount is called, job:{}", request.getJobId());
+        try {
+            TiktokJob job = jobService.getJob(request.getJobId());
+            Set<Long> addedIds = new HashSet<>();
+            request.getAccounts().forEach(id -> {
+                TiktokAccount account = accountService.getAccount(id);
+                if (account != null) {
+                    job.getAccounts().add(account);
+                    addedIds.add(id);
+                } else log.warn("Account {} not found", id);
+                jobService.addJob(job);
+            });
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("addedAccounts", addedIds);
+            return ResponseEntity.ok(new TiktokResponse<>(true, "account added to job", new ObjectMapper().writeValueAsString(responseMap)));
+        } catch (
+                IllegalArgumentException | JsonProcessingException e) {
+            log.error("Could not add account to job: {}", e.getMessage());
             return new ResponseEntity<>(new TiktokResponse<>(false, e.getMessage(), null), HttpStatus.BAD_REQUEST);
         }
     }

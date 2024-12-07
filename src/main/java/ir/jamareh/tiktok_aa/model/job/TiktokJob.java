@@ -1,8 +1,12 @@
 package ir.jamareh.tiktok_aa.model.job;
 
+import ir.jamareh.tiktok_aa.model.account.TiktokAccount;
 import ir.jamareh.tiktok_aa.model.user.User;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -22,6 +26,9 @@ public class TiktokJob {
     @Column(nullable = false, length = 300)
     private String description;
 
+    @Column
+    private String query;
+
     @Column(nullable = false)
     private Long startTime;
 
@@ -39,4 +46,12 @@ public class TiktokJob {
 
     @Enumerated(EnumType.STRING)
     private JobStatus jobStatus;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "jobs_accounts", // Name of the join table
+            joinColumns = @JoinColumn(name = "job_id"), // Foreign key for Job
+            inverseJoinColumns = @JoinColumn(name = "account_id") // Foreign key for Account
+    )
+    private List<TiktokAccount> accounts;
 }

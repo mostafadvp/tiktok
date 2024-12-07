@@ -1,4 +1,4 @@
-package ir.jamareh.tiktok_aa.model.user;
+package ir.jamareh.tiktok_aa.model.account;
 
 import ir.jamareh.tiktok_aa.model.job.TiktokJob;
 import jakarta.persistence.*;
@@ -9,8 +9,8 @@ import java.util.Set;
 
 @Data
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "accounts")
+public class TiktokAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,16 +21,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column
     private boolean enabled;
 
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "accounts")
     private List<TiktokJob> jobs;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles;
 }

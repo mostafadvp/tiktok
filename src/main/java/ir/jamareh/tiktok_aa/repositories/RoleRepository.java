@@ -1,6 +1,6 @@
 package ir.jamareh.tiktok_aa.repositories;
 
-import ir.jamareh.tiktok_aa.model.Role;
+import ir.jamareh.tiktok_aa.model.user.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
